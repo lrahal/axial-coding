@@ -1,10 +1,11 @@
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.stem.snowball import SnowballStemmer
 from nltk.stem import PorterStemmer
 from collections import Counter
 from num2words import num2words
 
-import nltk
 import os
 import string
 import numpy as np
@@ -19,14 +20,14 @@ ALPHA = 0.3
 
 
 def get_files():
-    path = '/Users/line/axial-coding-master/data/'
+    path = '/Users/line/axial-coding/data/txt/'
     folders = list(os.walk(path))
     files = folders[0][2]
-    files.remove('.DS_Store')
 
     for filename in files:
         file = open(path + filename, 'r')
         text = file.read().strip()
+        text = preprocess(text)
         file.close()
     return files
 
@@ -36,7 +37,7 @@ def convert_lower_case(data):
 
 
 def remove_stop_words(data):
-    stop_words = stopwords.words('english')
+    stop_words = stopwords.words('french')
     words = word_tokenize(str(data))
     new_text = ""
     for w in words:
@@ -46,7 +47,7 @@ def remove_stop_words(data):
 
 
 def remove_punctuation(data):
-    symbols = "!#$%&()*+-./:;<=>?@[\]^_`{|}~"
+    symbols = "!#$%&()*+-./:;?@[\]^_`{|}~"
     for i in range(len(symbols)):
         data = np.char.replace(data, symbols[i], ' ')
         data = np.char.replace(data, "  ", " ")
@@ -54,12 +55,8 @@ def remove_punctuation(data):
     return data
 
 
-def remove_apostrophe(data):
-    return np.char.replace(data, "'", "")
-
-
 def stemming(data):
-    stemmer = PorterStemmer()
+    stemmer = SnowballStemmer("french", ignore_stopwords=True)
 
     tokens = word_tokenize(str(data))
     new_text = ""
@@ -84,13 +81,12 @@ def convert_numbers(data):
 def preprocess(data):
     data = convert_lower_case(data)
     data = remove_punctuation(data)       #remove comma seperately
-    data = remove_apostrophe(data)
     data = remove_stop_words(data)
     data = convert_numbers(data)
-    data = stemming(data)
+    # data = stemming(data)
     data = remove_punctuation(data)
     data = convert_numbers(data)
-    data = stemming(data)                 #needed again as we need to stem the words
+    # data = stemming(data)                 #needed again as we need to stem the words
     data = remove_punctuation(data)       #needed again as num2word is giving few hypens and commas fourty-one
     data = remove_stop_words(data)        #needed again as num2word is giving stop words 101 - one hundred and one
     return data
